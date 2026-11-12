@@ -33,7 +33,7 @@ test('previous button crosses lesson boundaries and object words have Korean rea
  document:{querySelector:()=>app,getElementById:id=>elements[id]||=({value:'',innerHTML:'',hidden:false,disabled:true,querySelectorAll:()=>[]})},window:{}});
  const html=fs.readFileSync('index.html','utf8');
  vm.runInContext(fs.readFileSync('features.js','utf8'),context);
- vm.runInContext(html.match(/<script>([\\s\\S]*?)<\\/script>/)[1],context);
+ vm.runInContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],context);
  vm.runInContext('startObjects();if(idx!==133)throw Error("object start");move(-1);if(idx!==132)throw Error("previous");move(1)',context);
  assert.match(app.innerHTML,/한글 읽기/);
  assert.match(app.innerHTML,/혼/);
@@ -46,6 +46,6 @@ test('quiz order is randomized across launches and stored for resume',()=>{
  document:{querySelector:()=>app,getElementById:id=>elements[id]||=({value:'',innerHTML:'',hidden:false,disabled:true,querySelectorAll:()=>[]})},window:{}});
  const html=fs.readFileSync('index.html','utf8');
  vm.runInContext(fs.readFileSync('features.js','utf8'),context);
- vm.runInContext(html.match(/<script>([\\s\\S]*?)<\\/script>/)[1],context);
+ vm.runInContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],context);
  vm.runInContext('startQuiz();const a=quiz.join(",");startQuiz();const b=quiz.join(",");if(a===b)throw Error("not shuffled");if(state.session.keys.join(",")!==b)throw Error("not saved")',context);
 });
