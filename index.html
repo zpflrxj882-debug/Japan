@@ -219,6 +219,27 @@ function practiceSpeech(target){
   r.start();
  }catch(e){alert("음성 인식을 시작하지 못했어요. 직접 따라 말하기로 연습해 주세요.")}
 }
+const ROMA_KO={
+ kya:"캬",kyu:"큐",kyo:"쿄",sha:"샤",shu:"슈",sho:"쇼",cha:"차",chu:"추",cho:"초",nya:"냐",nyu:"뉴",nyo:"뇨",hya:"햐",hyu:"휴",hyo:"효",mya:"먀",myu:"뮤",myo:"묘",rya:"랴",ryu:"류",ryo:"료",gya:"갸",gyu:"규",gyo:"교",ja:"자",ju:"주",jo:"조",
+ shi:"시",chi:"치",tsu:"츠",fu:"후",ji:"지",
+ a:"아",i:"이",u:"우",e:"에",o:"오",ka:"카",ki:"키",ku:"쿠",ke:"케",ko:"코",sa:"사",su:"스",se:"세",so:"소",ta:"타",te:"테",to:"토",na:"나",ni:"니",nu:"누",ne:"네",no:"노",ha:"하",hi:"히",he:"헤",ho:"호",ma:"마",mi:"미",mu:"무",me:"메",mo:"모",ya:"야",yu:"유",yo:"요",ra:"라",ri:"리",ru:"루",re:"레",ro:"로",wa:"와",wo:"오",ga:"가",gi:"기",gu:"구",ge:"게",go:"고",za:"자",zu:"즈",ze:"제",zo:"조",da:"다",de:"데",do:"도",ba:"바",bi:"비",bu:"부",be:"베",bo:"보",pa:"파",pi:"피",pu:"푸",pe:"페",po:"포",fa:"화",fi:"휘",fe:"훼",fo:"호",va:"바",vi:"비",vu:"부",ve:"베",vo:"보"
+};
+const ROMA_PARTS=Object.keys(ROMA_KO).sort((a,b)=>b.length-a.length);
+function addFinalN(out){const cp=out.charCodeAt(out.length-1);if(cp>=0xac00&&cp<=0xd7a3&&(cp-0xac00)%28===0)return out.slice(0,-1)+String.fromCharCode(cp+4);return out+"ㄴ"}
+function romanKorean(roman){
+ return String(roman).toLowerCase().normalize("NFD").replace(/[\u0304\u0302]/g,"").split(/\s+/).map(word=>{
+  let out="",i=0;
+  while(i<word.length){
+   if(word[i]==="n"&&(i===word.length-1||word[i+1]==="'"||!/[aeiouy]/.test(word[i+1])&&word[i+1]!=="n")){out=addFinalN(out);i+=word[i+1]==="'"?2:1;continue}
+   if(i+1<word.length&&word[i]===word[i+1]&&/[bcdfghjklmnpqrstvwxyz]/.test(word[i])){out=addFinalN(out);i++;continue}
+   const part=ROMA_PARTS.find(p=>word.startsWith(p,i));
+   if(part){out+=ROMA_KO[part];i+=part.length}else{out+=word[i];i++}
+  }
+  return out;
+ }).join(" ");
+}
+function wordPronunciation(x){return x[4]||romanKorean(x[1])}
+function wordPicture(x){return x[5]||""}
 function label(t){return {h:"히라가나",k:"가타카나",v:"기초 단어"}[t]}
 function today(){return new Date().toLocaleDateString("sv-SE")}
 function due(t){return DATA[t].filter((_,i)=>state.review[t+i]&&state.review[t+i].next<=Date.now()).length}
@@ -240,7 +261,7 @@ function home(){
  <div class="quick"><button onclick="startQuiz()">🧠 10문제 복습</button><button onclick="missionPage()">🗣️ 여행 회화</button></div></section>
  <details class="study-room" id="courses"><summary>📚 학습실 전체 보기</summary><div class="room-body">
  ${topics.map(([t,g,name,desc])=>`<div class="tile"><div class="glyph">${g}</div><div class="detail"><b>${name}</b><div class="mut">${desc} · ${stats(t)}/${DATA[t].length}</div></div><button onclick="start('${t}')">학습</button></div>`).join("")}
- <button class="sub" onclick="startQuiz()">읽기·기억 퀴즈</button>
+ <div class="tile"><div class="glyph">🧸</div><div class="detail"><b>물건·생활용품</b><div class="mut">그림과 한글 발음으로 배우는 물건 50개 · ${V.slice(OBJECT_START).filter((_,i)=>state.learned["v"+(OBJECT_START+i)]).length}/50 학습</div></div><button onclick="startObjects()">학습</button></div><button class="sub" onclick="startQuiz()">읽기·기억 퀴즈</button>
  <button class="sub" onclick="reviewMissed()">틀린 글자 집중 복습</button>
  <button class="sub" onclick="weakPage()">취약 카드 관리</button>
  <button class="sub" onclick="missionPage()">여행 회화 미션</button></div></details>
@@ -266,7 +287,7 @@ function resumeQuiz(){
 
 function start(t){mode=t;idx=DATA[t].findIndex((_,i)=>!state.learned[t+i]);if(idx<0)idx=0;learnStart=idx;learnEnd=Math.min(DATA[t].length,idx+10);view="learn";render()}
 function startObjects(){mode="v";idx=V.findIndex((_,i)=>i>=OBJECT_START&&!state.learned["v"+i]);if(idx<0)idx=OBJECT_START;learnStart=idx;learnEnd=Math.min(V.length,idx+10);view="learn";render()}
-function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">이번 세트 ${idx<learnStart?"이전 카드 복습":`이번 세트 ${idx-learnStart+1} / ${learnEnd-learnStart}`} · 전체 ${idx+1}/${arr.length}</span></div><div class="progress"><i style="width:${Math.max(0,Math.min(100,(idx-learnStart+1)/(learnEnd-learnStart)*100))}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:28px 0 12px":""}">${esc(x[0])}</div><div class="roman">${esc(x[1])}</div><div class="reading">${esc(x[2])}</div><div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="practiceSpeech('${x[0]}')">🎤 따라 말하기</button></div><div id="speech-feedback"></div><div class="tip">${mode==="v"?esc(x[3]):"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===0?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===learnEnd-1?"이번 세트 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
+function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">이번 세트 ${idx<learnStart?"이전 카드 복습":`이번 세트 ${idx-learnStart+1} / ${learnEnd-learnStart}`} · 전체 ${idx+1}/${arr.length}</span></div><div class="progress"><i style="width:${Math.max(0,Math.min(100,(idx-learnStart+1)/(learnEnd-learnStart)*100))}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:20px 0 10px":""}">${mode==="v"&&wordPicture(x)?`<div style="font-size:60px" aria-label="물건 그림">${esc(wordPicture(x))}</div>`:""}${esc(x[0])}</div>${mode==="v"?`<div class="reading"><small class="mut">한글 읽기(근사치)</small><div>${esc(wordPronunciation(x))}</div></div><div class="roman">${esc(x[1])}</div><div class="tip" style="text-align:center"><b>뜻: ${esc(x[2])}</b></div>`:`<div class="reading">${esc(x[2])}</div><div class="roman">${esc(x[1])}</div>`}<div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="practiceSpeech('${x[0]}')">🎤 따라 말하기</button></div><div id="speech-feedback"></div><div class="tip">${mode==="v"?esc(x[3])+" · 한글 발음은 근사치이니 음성도 꼭 들어 보세요.":"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===0?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===learnEnd-1?"이번 세트 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
 function mark(){const key=mode+idx;state.learned[key]=true;const now=Date.now();if(!state.review[key])state.review[key]={step:0,next:now+86400000,lastSeen:now};save();render()}
 function move(n){if(idx+n<0)return;if(idx+n>=learnEnd){begin(Array.from({length:learnEnd-learnStart},(_,i)=>mode+(learnStart+i)),false);return}idx+=n;render()}
 function goHome(){view="home";render()}
@@ -292,7 +313,7 @@ function quizView(){
  <div class="card"><span class="pill">${recall?"정답을 보기 전에 소리 내어 말해 보세요":"읽는 법을 골라 보세요"}</span>
  <div class="char" style="${mode==="v"?"font-size:50px;margin:24px 0":""}">${esc(x[0])}</div>
  ${recall?`<p class="mut">먼저 소리를 떠올려 말한 뒤, 스스로 기억했는지 선택해요.</p><div class="controls" id="recall-buttons"><button onclick="recallAnswer(false)">기억 안 나요</button><button onclick="recallAnswer(true)">혼자 기억했어요</button></div>`:
- `<button onclick="speak('${x[0]}')">🔊 소리 듣기</button><div id="options" class="choices">${opts.map(j=>`<button data-j="${j}" onclick="answer(${j})">${esc(arr[j][1])}</button>`).join("")}</div>`}
+ `<button onclick="speak('${x[0]}')">🔊 소리 듣기</button><div id="options" class="choices">${opts.map(j=>`<button data-j="${j}" onclick="answer(${j})">${esc(mode==="v"?arr[j][2]:arr[j][1]+" · "+arr[j][2])}</button>`).join("")}</div>`}
  <div id="feedback" class="feedback" aria-live="polite"></div></div>
  <button id="next" class="primary" onclick="nextQuestion()" disabled>다음 문제 →</button>`;
 }
@@ -301,7 +322,7 @@ function finishAnswer(correct,kind){
  const key=quiz[qidx],x=DATA[mode][+key.slice(1)];
  const r=L.record(state,key,correct,kind);if(state.session)state.session.index=qidx+1;save();
  document.getElementById("feedback").innerHTML=`<div>${correct?"✓ 기억 확인 완료":"다음에 다시 연습해요"}</div>
- <div>${esc(x[1])} · ${esc(x[2])}</div><small>${kind==="recall"?"스스로 기억했는지 평가한 결과예요. ":"객관식 정답만으로 장기 기억이 확인되지는 않아요. "}${!correct?"10분 뒤 다시 확인할 수 있어요.":r.qualified?"날짜 간격을 둔 복습으로 기록했어요.":"추가 연습으로 기록했어요."}</small>
+ <div>${esc(x[1])} · ${esc(mode==="v"?wordPronunciation(x)+" · "+x[2]:x[2])}</div><small>${kind==="recall"?"스스로 기억했는지 평가한 결과예요. ":"객관식 정답만으로 장기 기억이 확인되지는 않아요. "}${!correct?"10분 뒤 다시 확인할 수 있어요.":r.qualified?"날짜 간격을 둔 복습으로 기록했어요.":"추가 연습으로 기록했어요."}</small>
  <button onclick="speak('${x[0]}')">🔊 일본어 발음 듣기</button>`;
  document.getElementById("next").disabled=false;
 }
