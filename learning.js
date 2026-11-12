@@ -43,7 +43,7 @@ function record(s,id,ok,kind,at=Date.now()){
  const d=day(at),priorDay=r.lastAdvance===undefined?null:day(r.lastAdvance);
  const due=!prev||r.next<=at;
  const canAdvance=kind==="recall"&&due&&priorDay!==d;
- let qualified=false;
+ const qualified=kind==="recall"&&!!prev&&due&&r.lastSeen!==undefined&&day(r.lastSeen)!==d;
  if(!ok){
   r.step=0;r.next=at+600000;
   s.mistakes[id]=(s.mistakes[id]||0)+1;
@@ -51,7 +51,6 @@ function record(s,id,ok,kind,at=Date.now()){
  }else{
   s.seen++;
   if(canAdvance){
-   qualified=!!prev&&r.lastSeen!==undefined&&day(r.lastSeen)!==d;
    r.step=Math.min(6,r.step+1);
    r.next=at+INTERVALS[r.step]*DAY;
    r.lastAdvance=at;
