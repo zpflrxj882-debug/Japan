@@ -42,7 +42,7 @@ function record(s,id,ok,kind,at=Date.now()){
  const prev=s.review[id],r=prev?{...prev}:{step:0,next:at};
  const d=day(at),priorDay=r.lastAdvance===undefined?null:day(r.lastAdvance);
  const due=!prev||r.next<=at;
- const canAdvance=kind==="recall"&&due&&priorDay!==d;
+ const canAdvance=kind==="recall"&&due&&priorDay!==d&&(!prev||r.lastSeen===undefined||day(r.lastSeen)!==d);
  const qualified=kind==="recall"&&!!prev&&due&&r.lastSeen!==undefined&&day(r.lastSeen)!==d;
  if(!ok){
   r.step=0;r.next=at+600000;
@@ -60,6 +60,7 @@ function record(s,id,ok,kind,at=Date.now()){
     if(w.days.length>=3){w.locked=false;s.mistakes[id]=0}
    }
   }else if(!prev){r.step=0;r.next=at+DAY}
+  else if(kind==="recall"&&due&&r.next<=at){r.next=at+DAY}
   // Correct recognition does not advance a spaced-recall interval.
  }
  r.lastSeen=at;r.lastReviewed=at;
