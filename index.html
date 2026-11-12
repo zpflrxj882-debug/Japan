@@ -151,7 +151,7 @@ const V=[["こんにちは","konnichiwa","안녕하세요","낮에 만났을 때
 const KEY="japan-studio-v1",DATA={h:H,k:K,v:V},L=JapanLearning;
 const ids=Object.entries(DATA).flatMap(([t,a])=>a.map((_,i)=>t+i));
 let state=L.blank();try{const raw=localStorage.getItem(KEY);if(raw)state=L.validate(JSON.parse(raw),ids)}catch(e){alert("학습 기록을 읽지 못했어요. 기존 저장 데이터는 유지합니다: "+e.message)}
-let view="home",mode="h",idx=0,quiz=[],qidx=0,answered=false,recall=false;
+let view="home",mode="h",idx=0,learnStart=0,learnEnd=0,quiz=[],qidx=0,answered=false,recall=false;
 const app=document.querySelector("#app");
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch{alert("저장하지 못했어요. JSON 백업으로 기록을 보관해 주세요.");return false}}
 function esc(x){return String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -201,10 +201,10 @@ function resumeQuiz(){
  view="quiz";render();
 }
 
-function start(t){mode=t;idx=DATA[t].findIndex((_,i)=>!state.learned[t+i]);if(idx<0)idx=0;view="learn";render()}
-function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">${idx+1} / ${arr.length}</span></div><div class="progress"><i style="width:${(idx+1)/arr.length*100}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:28px 0 12px":""}">${esc(x[0])}</div><div class="roman">${esc(x[1])}</div><div class="reading">${esc(x[2])}</div><div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="speak('${x[0]}')">↻ 다시 듣기</button></div><div class="tip">${mode==="v"?esc(x[3]):"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===0?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===arr.length-1?"학습 마치고 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
+function start(t){mode=t;idx=DATA[t].findIndex((_,i)=>!state.learned[t+i]);if(idx<0)idx=0;learnStart=idx;learnEnd=Math.min(DATA[t].length,idx+10);view="learn";render()}
+function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">이번 세트 ${idx-learnStart+1} / ${learnEnd-learnStart} · 전체 ${idx+1}/${arr.length}</span></div><div class="progress"><i style="width:${(idx-learnStart+1)/(learnEnd-learnStart)*100}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:28px 0 12px":""}">${esc(x[0])}</div><div class="roman">${esc(x[1])}</div><div class="reading">${esc(x[2])}</div><div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="speak('${x[0]}')">↻ 다시 듣기</button></div><div class="tip">${mode==="v"?esc(x[3]):"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===learnStart?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===learnEnd-1?"이번 세트 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
 function mark(){const key=mode+idx;state.learned[key]=true;const now=Date.now();if(!state.review[key])state.review[key]={step:0,next:now+86400000,lastSeen:now};save();render()}
-function move(n){if(idx+n<0)return;if(idx+n>=DATA[mode].length){startQuiz(mode);return}idx+=n;render()}
+function move(n){if(idx+n<learnStart)return;if(idx+n>=learnEnd){begin(Array.from({length:learnEnd-learnStart},(_,i)=>mode+(learnStart+i)),false);return}idx+=n;render()}
 function goHome(){view="home";render()}
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function begin(keys,active=false){
