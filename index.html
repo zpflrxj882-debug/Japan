@@ -68,7 +68,7 @@ function home(){
 }
 function startDaily(){
  const ready=ids.filter(id=>state.review[id]&&state.review[id].next<=Date.now());
- if(ready.length)return begin(L.queue(state,ids),true);
+ if(ready.length)return begin(L.queue(state,ready),true);
  const next=["h","k","v"].find(t=>DATA[t].some((_,i)=>!state.learned[t+i]));
  if(next)return start(next);
  return begin(L.queue(state,ids),true);
@@ -85,7 +85,7 @@ function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<bu
 function mark(){const key=mode+idx;state.learned[key]=true;const now=Date.now();if(!state.review[key])state.review[key]={step:0,next:now+86400000};save();render()}
 function move(n){if(idx+n<0)return;if(idx+n>=DATA[mode].length){startQuiz(mode);return}idx+=n;render()}
 function goHome(){view="home";render()}
-function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function begin(keys,active=false){
  if(!keys.length){alert("지금 복습할 항목이 없어요. 새 글자를 배우거나 나중에 다시 와 주세요.");return}
  quiz=keys.slice(0,10);qidx=0;answered=false;recall=active;view="quiz";
@@ -112,7 +112,7 @@ function quizView(){
 function finishAnswer(correct,kind){
  if(answered)return;answered=true;
  const key=quiz[qidx],x=DATA[mode][+key.slice(1)];
- const r=L.record(state,key,correct,kind);save();
+ const r=L.record(state,key,correct,kind);if(state.session)state.session.index=qidx+1;save();
  document.getElementById("feedback").innerHTML=`<div>${correct?"✓ 기억 확인 완료":"다음에 다시 연습해요"}</div>
  <div>${esc(x[1])} · ${esc(x[2])}</div><small>${kind==="recall"?"스스로 기억했는지 평가한 결과예요. ":"객관식 정답만으로 장기 기억이 확인되지는 않아요. "}${!correct?"10분 뒤 다시 확인할 수 있어요.":r.qualified?"날짜 간격을 둔 복습으로 기록했어요.":"추가 연습으로 기록했어요."}</small>
  <button onclick="speak('${x[0]}')">🔊 일본어 발음 듣기</button>`;
