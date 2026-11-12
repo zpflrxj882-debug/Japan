@@ -156,6 +156,18 @@ const app=document.querySelector("#app");
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch{alert("저장하지 못했어요. JSON 백업으로 기록을 보관해 주세요.");return false}}
 function esc(x){return String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function speak(s){if(!("speechSynthesis" in window)){alert("이 기기에서 음성 읽기를 지원하지 않아요.");return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.lang="ja-JP";u.rate=.78;const voices=speechSynthesis.getVoices();u.voice=voices.find(x=>x.lang==="ja-JP")||voices.find(x=>x.lang.startsWith("ja"))||null;speechSynthesis.speak(u)}
+function practiceSpeech(target){
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Speech){alert("이 브라우저는 일본어 음성 인식을 지원하지 않아요. 발음 듣기와 직접 따라 말하기를 이용해 주세요.");return}
+ try{
+  const r=new Speech();r.lang="ja-JP";r.interimResults=false;r.maxAlternatives=1;
+  r.onresult=e=>{const heard=e.results[0][0].transcript,el=document.getElementById("speech-feedback");
+   if(el)el.innerHTML='<div class="note"><b>🎤 인식된 문장</b><div>'+esc(heard)+'</div><small>목표: '+esc(target)+' · 음성 인식 결과이며 발음·억양 점수는 아니에요.</small></div>';
+  };
+  r.onerror=()=>alert("마이크를 사용할 수 없어요. 기기 권한이나 브라우저 지원 여부를 확인해 주세요.");
+  r.start();
+ }catch(e){alert("음성 인식을 시작하지 못했어요. 직접 따라 말하기로 연습해 주세요.")}
+}
 function label(t){return {h:"히라가나",k:"가타카나",v:"기초 단어"}[t]}
 function today(){return new Date().toLocaleDateString("sv-SE")}
 function due(t){return DATA[t].filter((_,i)=>state.review[t+i]&&state.review[t+i].next<=Date.now()).length}
@@ -202,7 +214,7 @@ function resumeQuiz(){
 }
 
 function start(t){mode=t;idx=DATA[t].findIndex((_,i)=>!state.learned[t+i]);if(idx<0)idx=0;learnStart=idx;learnEnd=Math.min(DATA[t].length,idx+10);view="learn";render()}
-function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">이번 세트 ${idx-learnStart+1} / ${learnEnd-learnStart} · 전체 ${idx+1}/${arr.length}</span></div><div class="progress"><i style="width:${(idx-learnStart+1)/(learnEnd-learnStart)*100}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:28px 0 12px":""}">${esc(x[0])}</div><div class="roman">${esc(x[1])}</div><div class="reading">${esc(x[2])}</div><div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="speak('${x[0]}')">↻ 다시 듣기</button></div><div class="tip">${mode==="v"?esc(x[3]):"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===learnStart?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===learnEnd-1?"이번 세트 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
+function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">이번 세트 ${idx-learnStart+1} / ${learnEnd-learnStart} · 전체 ${idx+1}/${arr.length}</span></div><div class="progress"><i style="width:${(idx-learnStart+1)/(learnEnd-learnStart)*100}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:28px 0 12px":""}">${esc(x[0])}</div><div class="roman">${esc(x[1])}</div><div class="reading">${esc(x[2])}</div><div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="practiceSpeech('${x[0]}')">🎤 따라 말하기</button></div><div id="speech-feedback"></div><div class="tip">${mode==="v"?esc(x[3]):"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===learnStart?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===learnEnd-1?"이번 세트 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
 function mark(){const key=mode+idx;state.learned[key]=true;const now=Date.now();if(!state.review[key])state.review[key]={step:0,next:now+86400000,lastSeen:now};save();render()}
 function move(n){if(idx+n<learnStart)return;if(idx+n>=learnEnd){begin(Array.from({length:learnEnd-learnStart},(_,i)=>mode+(learnStart+i)),false);return}idx+=n;render()}
 function goHome(){view="home";render()}
