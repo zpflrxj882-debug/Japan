@@ -147,7 +147,58 @@ const V=[["こんにちは","konnichiwa","안녕하세요","낮에 만났을 때
 ["かぞく","kazoku","가족","생활"],
 ["しごと","shigoto","일/직장","생활"],
 ["うち","uchi","집","생활"],
-["りょこう","ryokō","여행","생활"]];
+["りょこう","ryokō","여행","생활"],
+["ほん","hon","책","읽기·공부","혼","📖"],
+["ノート","nōto","공책","필기","노오토","📓"],
+["えんぴつ","enpitsu","연필","필기","엔피츠","✏️"],
+["ペン","pen","펜","필기","펜","🖊️"],
+["けしゴム","keshigomu","지우개","필기","케시고무","🧽"],
+["かみ","kami","종이","사무용품","카미","📄"],
+["つくえ","tsukue","책상","가구","츠쿠에","🪑"],
+["いす","isu","의자","가구","이스","🪑"],
+["テーブル","tēburu","테이블","가구","테에부루","🪑"],
+["ベッド","beddo","침대","가구","벳도","🛏️"],
+["まくら","makura","베개","침구","마쿠라","🛌"],
+["とけい","tokei","시계","생활용품","토케이","⌚"],
+["かばん","kaban","가방","소지품","카방","👜"],
+["さいふ","saifu","지갑","소지품","사이후","👛"],
+["かぎ","kagi","열쇠","소지품","카기","🔑"],
+["かさ","kasa","우산","소지품","카사","☂️"],
+["くつ","kutsu","신발","의류","쿠츠","👟"],
+["くつした","kutsushita","양말","의류","쿠츠시타","🧦"],
+["ふく","fuku","옷","의류","후쿠","👕"],
+["ぼうし","bōshi","모자","의류","보오시","🧢"],
+["めがね","megane","안경","소지품","메가네","👓"],
+["スマートフォン","sumātofon","스마트폰","전자기기","스마아토폰","📱"],
+["パソコン","pasokon","컴퓨터","전자기기","파소콘","💻"],
+["テレビ","terebi","텔레비전","전자기기","테레비","📺"],
+["カメラ","kamera","카메라","전자기기","카메라","📷"],
+["イヤホン","iyahon","이어폰","전자기기","이야혼","🎧"],
+["でんち","denchi","건전지","전자기기","덴치","🔋"],
+["じゅうでんき","jūdenki","충전기","전자기기","주우덴키","🔌"],
+["コップ","koppu","컵","주방","콥푸","🥛"],
+["さら","sara","접시","주방","사라","🍽️"],
+["はし","hashi","젓가락","주방","하시","🥢"],
+["スプーン","supūn","숟가락","주방","스푸운","🥄"],
+["フォーク","fōku","포크","주방","호오쿠","🍴"],
+["ナイフ","naifu","칼","주방","나이후","🔪"],
+["なべ","nabe","냄비","주방","나베","🍲"],
+["フライパン","furaipan","프라이팬","주방","후라이판","🍳"],
+["れいぞうこ","reizōko","냉장고","가전","레이조오코","🧊"],
+["せんたくき","sentakuki","세탁기","가전","센타쿠키","🫧"],
+["かがみ","kagami","거울","생활용품","카가미","🪞"],
+["タオル","taoru","수건","생활용품","타오루","🧺"],
+["せっけん","sekken","비누","생활용품","셋켄","🧼"],
+["はぶらし","haburashi","칫솔","생활용품","하부라시","🪥"],
+["はみがきこ","hamigakiko","치약","생활용품","하미가키코","🪥"],
+["はさみ","hasami","가위","사무용품","하사미","✂️"],
+["ゴミばこ","gomibako","쓰레기통","생활용품","고미바코","🗑️"],
+["まど","mado","창문","집","마도","🪟"],
+["ドア","doa","문","집","도아","🚪"],
+["でんき","denki","전등·전기","집","덴키","💡"],
+["くるま","kuruma","자동차","교통수단","쿠루마","🚗"],
+["じてんしゃ","jitensha","자전거","교통수단","지텐샤","🚲"]];
+const OBJECT_START=V.length-50;
 const KEY="japan-studio-v1",DATA={h:H,k:K,v:V},L=JapanLearning;
 const ids=Object.entries(DATA).flatMap(([t,a])=>a.map((_,i)=>t+i));
 let state=L.blank();try{const raw=localStorage.getItem(KEY);if(raw)state=L.validate(JSON.parse(raw),ids)}catch(e){alert("학습 기록을 읽지 못했어요. 기존 저장 데이터는 유지합니다: "+e.message)}
@@ -179,7 +230,7 @@ function home(){
  const session=state.session&&state.session.keys.length>state.session.index;
  const days=new Set(state.history.map(x=>L.day(x.at)));
  const todayDate=today(),hasToday=days.has(todayDate);
- const topics=[["h","あ","히라가나","일본어 기본 글자 46개"],["k","ア","가타카나","외래어 글자 46개"],["v","旅","기초 단어·여행 표현","일상에서 사용하는 133개 표현"]];
+ const topics=[["h","あ","히라가나","일본어 기본 글자 46개"],["k","ア","가타카나","외래어 글자 46개"],["v","旅","기초 단어·여행 표현","일상·여행·물건 183개"]];
  app.innerHTML=`<div class="top"><div class="brand">JAPAN <em>/</em> STUDIO</div><span class="mut">일본어 전용 학습</span></div>
  <section class="hero"><div class="kicker">YOUR DAILY JAPANESE</div><h1>${hasToday?"오늘도 일본어 한마디.":"오늘은 한 글자부터,\n내일은 한 문장까지."}</h1><p>읽고 · 듣고 · 직접 떠올리고 · 다시 말해봐요.</p></section>
  <nav class="home-nav" aria-label="학습 메뉴"><a href="#today">오늘</a><a href="#courses">학습실</a><a href="#records">내 기록</a></nav>
@@ -214,17 +265,20 @@ function resumeQuiz(){
 }
 
 function start(t){mode=t;idx=DATA[t].findIndex((_,i)=>!state.learned[t+i]);if(idx<0)idx=0;learnStart=idx;learnEnd=Math.min(DATA[t].length,idx+10);view="learn";render()}
-function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">이번 세트 ${idx-learnStart+1} / ${learnEnd-learnStart} · 전체 ${idx+1}/${arr.length}</span></div><div class="progress"><i style="width:${(idx-learnStart+1)/(learnEnd-learnStart)*100}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:28px 0 12px":""}">${esc(x[0])}</div><div class="roman">${esc(x[1])}</div><div class="reading">${esc(x[2])}</div><div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="practiceSpeech('${x[0]}')">🎤 따라 말하기</button></div><div id="speech-feedback"></div><div class="tip">${mode==="v"?esc(x[3]):"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===learnStart?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===learnEnd-1?"이번 세트 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
+function startObjects(){mode="v";idx=V.findIndex((_,i)=>i>=OBJECT_START&&!state.learned["v"+i]);if(idx<0)idx=OBJECT_START;learnStart=idx;learnEnd=Math.min(V.length,idx+10);view="learn";render()}
+function learn(){const arr=DATA[mode],x=arr[idx],key=mode+idx;app.innerHTML=`<button class="back" onclick="goHome()">← 홈</button><div class="top"><b>${label(mode)} 배우기</b><span class="mut">이번 세트 ${idx<learnStart?"이전 카드 복습":`이번 세트 ${idx-learnStart+1} / ${learnEnd-learnStart}`} · 전체 ${idx+1}/${arr.length}</span></div><div class="progress"><i style="width:${Math.max(0,Math.min(100,(idx-learnStart+1)/(learnEnd-learnStart)*100))}%"></i></div><div class="card"><span class="pill">${label(mode)}</span><div class="char" style="${mode==="v"?"font-size:clamp(42px,12vw,70px);margin:28px 0 12px":""}">${esc(x[0])}</div><div class="roman">${esc(x[1])}</div><div class="reading">${esc(x[2])}</div><div class="controls"><button onclick="speak('${x[0]}')">🔊 발음 듣기</button><button onclick="practiceSpeech('${x[0]}')">🎤 따라 말하기</button></div><div id="speech-feedback"></div><div class="tip">${mode==="v"?esc(x[3]):"소리를 듣고 직접 따라 말한 다음, 글자 모양을 손가락으로 따라 써 보세요. 일본어 소리와 한글 소리가 완전히 같지는 않아요."}</div></div><div class="controls"><button onclick="move(-1)" ${idx===0?"disabled":""}>← 이전</button><button onclick="mark()">${state.learned[key]?"✓ 학습함":"✓ 배웠어요"}</button></div><button class="primary" onclick="move(1)">${idx===learnEnd-1?"이번 세트 퀴즈 →":"다음 글자 →"}</button><div class="foot">학습 기록은 현재 브라우저에 저장돼요.</div>`}
 function mark(){const key=mode+idx;state.learned[key]=true;const now=Date.now();if(!state.review[key])state.review[key]={step:0,next:now+86400000,lastSeen:now};save();render()}
-function move(n){if(idx+n<learnStart)return;if(idx+n>=learnEnd){begin(Array.from({length:learnEnd-learnStart},(_,i)=>mode+(learnStart+i)),false);return}idx+=n;render()}
+function move(n){if(idx+n<0)return;if(idx+n>=learnEnd){begin(Array.from({length:learnEnd-learnStart},(_,i)=>mode+(learnStart+i)),false);return}idx+=n;render()}
 function goHome(){view="home";render()}
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function begin(keys,active=false){
  if(!keys.length){alert("지금 복습할 항목이 없어요. 새 글자를 배우거나 나중에 다시 와 주세요.");return}
- quiz=keys.slice(0,10);qidx=0;answered=false;recall=active;view="quiz";
+ quiz=shuffle(keys).slice(0,10);qidx=0;answered=false;recall=active;view="quiz";
  state.session={keys:quiz.slice(),index:0,recall};save();render()
 }
-function startQuiz(t){const all=t?ids.filter(id=>id[0]===t):ids;begin(L.queue(state,all))}
+function startQuiz(t){const all=t?ids.filter(id=>id[0]===t):ids;
+ const now=Date.now(),dueCards=shuffle(all.filter(id=>state.review[id]?.next<=now)),learnedCards=shuffle(all.filter(id=>state.learned[id]&&!dueCards.includes(id))),freshCards=shuffle(all.filter(id=>!state.learned[id]&&!state.review[id]));
+ begin([...dueCards,...learnedCards,...freshCards].slice(0,10));}
 function reviewMissed(){begin(ids.filter(id=>(state.weak[id]?.locked||state.mistakes[id]>0)&&(!state.review[id]||state.review[id].next<=Date.now())).slice(0,10),true)}
 function quizView(){
  if(qidx>=quiz.length){
